@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_place_picker_lks/google_maps_place_picker.dart';
 import 'package:google_maps_place_picker_lks/providers/place_provider.dart';
@@ -11,6 +12,7 @@ import 'package:google_maps_place_picker_lks/src/controllers/autocomplete_search
 import 'package:google_maps_place_picker_lks/src/google_map_place_picker.dart';
 import 'package:flutter_google_maps_webservices/places.dart';
 import 'package:http/http.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'dart:io' show Platform;
 
@@ -243,6 +245,36 @@ class _PlacePickerState extends State<PlacePicker> {
   SearchBarController searchBarController = SearchBarController();
   bool showIntroModal = true;
 
+  Future<Map<String, String>> getHeaders() async {
+    MethodChannel _channel = const MethodChannel('google_api_headers');
+    Map<String, String> _headers = {};
+    if (_headers.isEmpty &&
+        !kIsWeb &&
+        !(Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (Platform.isIOS) {
+        _headers = {
+          "X-Ios-Bundle-Identifier": packageInfo.packageName,
+        };
+      } else if (Platform.isAndroid) {
+        try {
+          final sha1 = await _channel.invokeMethod(
+            'getSigningCertSha1',
+            packageInfo.packageName,
+          );
+          _headers = {
+            "X-Android-Package": packageInfo.packageName,
+            "X-Android-Cert": sha1,
+          };
+        } on PlatformException {
+          _headers = {};
+        }
+      }
+    }
+
+    return _headers;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -258,7 +290,7 @@ class _PlacePickerState extends State<PlacePicker> {
   }
 
   Future<PlaceProvider> _initPlaceProvider() async {
-    final headers = await GoogleApiHeaders().getHeaders();
+    final headers = await getHeaders();
     final provider = PlaceProvider(
       widget.apiKey,
       widget.proxyBaseUrl,
