@@ -24,7 +24,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-flutter: null
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.github.zeshuaro.google_api_headers
+        pluginClass: GoogleApiHeadersPlugin
 
 false_secrets:
   - /example/lib/keys.dart
