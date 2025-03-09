@@ -1,7 +1,7 @@
 name: google_maps_place_picker_lks
 description: A Flutter plugin which provides 'Picking Place' using Google Maps
   widget. (MB version)
-version: 3.2.3
+version: 3.2.4
 homepage: https://github.com/LoaayElkherbawy/google_maps_place_picker_lks.git
 
 environment:
